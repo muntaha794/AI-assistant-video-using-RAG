@@ -1,0 +1,33 @@
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4"]
+ignore = ["B008"]  # FastAPI Depends()/Form() in defaults is idiomatic
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["app"]
+ignore_missing_imports = true
+warn_unused_configs = true
+warn_redundant_casts = true
+no_implicit_optional = true
+check_untyped_defs = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "eval: retrieval/groundedness evaluation harness (still runs in CI, uses fixture corpus)",
+    "integration: tests that need external services (never enabled in CI)",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/streamlit_app.py"]

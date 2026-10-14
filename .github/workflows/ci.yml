@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install ruff
+        run: pip install "ruff>=0.5.0"
+      - name: Ruff lint
+        run: ruff check app tests scripts
+      - name: Ruff format check
+        run: ruff format --check app tests scripts
+
+  typecheck:
+    name: Type check (mypy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies (core + typing)
+        run: |
+          pip install -r requirements-base.txt
+          pip install "mypy>=1.10.0" types-python-dateutil
+      - name: Run mypy
+        run: mypy app
+
+  test:
+    name: Test (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install dependencies (core + dev, no heavy ML)
+        run: |
+          pip install -r requirements-base.txt -r requirements-dev.txt
+      - name: Run tests
+        run: pytest -q --cov=app --cov-report=term-missing
+        env:
+          APP_ENV: test
+          LOG_JSON: "false"

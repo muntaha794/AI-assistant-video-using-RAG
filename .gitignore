@@ -1,1 +1,41 @@
+# Secrets
 .env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Runtime data
+data/
+!data/.gitkeep
+chroma_db/
+*.db
+*.sqlite3
+
+# Model / media artifacts
+models/
+uploads/
+*.wav
+*.mp3
+*.m4a
+*.webm
+*.flac
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store

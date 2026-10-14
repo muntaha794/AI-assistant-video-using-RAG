@@ -1,0 +1,34 @@
+# ── AI Meeting Assistant ── core (lightweight) dependencies ───────────────────
+# Everything needed to run the FastAPI service, database, job runner and the
+# full test-suite. Heavy ML runtimes (Whisper, torch, pyannote, Chroma) live in
+# requirements-ml.txt so CI and local dev stay fast.
+
+# Web / API
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9          # multipart uploads (audio files)
+email-validator>=2.1.0           # pydantic EmailStr
+
+# Database / migrations
+SQLAlchemy[asyncio]>=2.0.30
+asyncpg>=0.29.0                  # PostgreSQL async driver
+aiosqlite>=0.20.0                # SQLite driver (dev / tests)
+alembic>=1.13.0
+
+# Settings / validation
+pydantic>=2.7.0
+pydantic-settings>=2.2.0
+
+# Auth
+PyJWT>=2.8.0
+
+# Reliability / observability
+tenacity>=8.3.0                  # retries with exponential backoff
+structlog>=24.2.0                # structured logging
+prometheus-client>=0.20.0        # /metrics (Prometheus format)
+
+# Utilities
+python-dotenv>=1.0.0
+httpx>=0.27.0                    # outbound HTTP (also used by the test client)
+numpy>=1.26.0
+tqdm>=4.66.0

@@ -1,0 +1,67 @@
+# Full local stack: PostgreSQL + API.
+#   docker compose up --build
+# API: http://localhost:8000 (docs at /docs)
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: meeting
+      POSTGRES_PASSWORD: meeting
+      POSTGRES_DB: meetings
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meeting -d meetings"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+asyncpg://meeting:meeting@db:5432/meetings
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      MISTRAL_MODEL: ${MISTRAL_MODEL:-mistral-small-latest}
+      HF_TOKEN: ${HF_TOKEN:-}
+      UPLOAD_DIR: /app/data/uploads
+      CHROMA_PERSIST_DIR: /app/data/chroma
+      LOG_JSON: "true"
+      JOB_WORKERS: ${JOB_WORKERS:-2}
+    volumes:
+      - media:/app/data
+    ports:
+      - "8000:8000"
+
+  # Optional: run workers separately from the API (scale with `--scale worker=N`).
+  # Workers poll the same jobs table, so they can outlive deploys of the API.
+  worker:
+    build: .
+    command: ["python", "-m", "app.worker"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+asyncpg://meeting:meeting@db:5432/meetings
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      HF_TOKEN: ${HF_TOKEN:-}
+      UPLOAD_DIR: /app/data/uploads
+      CHROMA_PERSIST_DIR: /app/data/chroma
+      LOG_JSON: "true"
+      JOB_WORKERS: ${JOB_WORKERS:-2}
+    volumes:
+      - media:/app/data
+    deploy:
+      replicas: 0  # enable with: docker compose up --scale worker=1
+
+volumes:
+  pgdata:
+  media:
